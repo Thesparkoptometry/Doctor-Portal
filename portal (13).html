@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doctor Portal — The Spark Optometry</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* ─── Variables ─────────────────────────────────────────── */
+:root {
+  --navy:    #1B3A5C;
+  --teal:    #2E7D8C;
+  --teal-lt: #EAF3F5;
+  --teal-md: #C4DDE1;
+  --warm:    #FAFAF8;
+  --amber:   #E6A817;
+  --text:    #2C2C2C;
+  --muted:   #6B7280;
+  --border:  #E2E8EA;
+  --red:     #C62828;
+  --green:   #2E7D32;
+  --green-lt:#E8F5E9;
+  --white:   #ffffff;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--warm);color:var(--text);min-height:100vh;}
+
+/* ─── Lock ──────────────────────────────────────────────── */
+#lock{position:fixed;inset:0;background:var(--navy);display:flex;align-items:center;justify-content:center;z-index:9999;}
+#lock.gone{display:none;}
+.lock-card{background:#fff;border-radius:14px;padding:2.5rem 2rem;width:min(360px,90vw);text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.35);}
+.lock-brand{font-family:'DM Serif Display',serif;font-size:1.5rem;color:var(--navy);margin-bottom:.2rem;}
+.lock-brand span{color:var(--teal);}
+.lock-sub{font-size:.75rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:1.5rem;}
+.lock-card input{width:100%;padding:.7rem 1rem;border:2px solid var(--border);border-radius:8px;font-size:1rem;font-family:inherit;text-align:center;letter-spacing:.1em;outline:none;transition:border .15s;margin-bottom:.75rem;}
+.lock-card input:focus{border-color:var(--teal);}
+.lock-err{color:var(--red);font-size:.78rem;margin-bottom:.5rem;display:none;}
+.btn-primary{width:100%;padding:.75rem;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:.95rem;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s;}
+.btn-primary:hover{background:var(--teal);}
+
+/* ─── Layout ────────────────────────────────────────────── */
+header{background:var(--navy);border-bottom:3px solid var(--teal);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;}
+.brand{font-family:'DM Serif Display',serif;font-size:1.15rem;color:#fff;}
+.brand span{color:var(--teal-md);}
+.brand-sub{font-size:.65rem;color:#9ECDD6;letter-spacing:.1em;text-transform:uppercase;margin-top:.1rem;}
+.hdr-right{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;}
+.hdr-link{display:inline-flex;align-items:center;gap:.3rem;color:#9ECDD6;font-size:.75rem;text-decoration:none;padding:.35rem .7rem;border:1px solid #2E5A7A;border-radius:6px;transition:all .15s;}
+.hdr-link:hover{background:rgba(255,255,255,.08);color:#fff;}
+#admin-btn{background:var(--amber);color:var(--navy);border:none;border-radius:6px;padding:.35rem .75rem;font-size:.75rem;font-weight:700;font-family:inherit;cursor:pointer;}
+#admin-btn.on{background:var(--green);color:#fff;}
+
+nav{background:#fff;border-bottom:2px solid var(--border);display:flex;overflow-x:auto;padding:0 1rem;}
+.nav-btn{padding:.8rem 1rem;font-size:.82rem;font-weight:500;font-family:inherit;color:var(--muted);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.nav-btn:hover{color:var(--navy);}
+.nav-btn.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:600;}
+
+main{max-width:960px;margin:0 auto;padding:1.5rem 1rem 3rem;}
+.tab{display:none;}.tab.active{display:block;}
+
+/* ─── Common components ─────────────────────────────────── */
+.sec-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem;}
+.sec-title{font-family:'DM Serif Display',serif;font-size:1.25rem;color:var(--navy);}
+.sec-desc{font-size:.8rem;color:var(--muted);margin-top:.2rem;}
+
+.card{background:#fff;border-radius:10px;border:1px solid var(--border);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.card+.card{margin-top:1rem;}
+
+.info-block{background:#fff;border-radius:10px;border:1px solid var(--border);padding:1.1rem 1.25rem;margin-bottom:1rem;}
+.info-title{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);border-bottom:1.5px solid var(--teal-lt);padding-bottom:.4rem;margin-bottom:.75rem;}
+.info-row{display:flex;gap:1rem;font-size:.83rem;padding:.3rem 0;border-bottom:1px solid #F5F5F5;align-items:flex-start;}
+.info-row:last-child{border-bottom:none;}
+.info-lbl{color:var(--muted);min-width:130px;flex-shrink:0;font-size:.76rem;}
+.info-val{color:var(--text);font-weight:500;}
+.info-val a{color:var(--teal);text-decoration:none;}
+.info-val a:hover{text-decoration:underline;}
+
+.btn{display:inline-flex;align-items:center;gap:.35rem;padding:.5rem 1rem;border-radius:7px;font-size:.82rem;font-weight:600;font-family:inherit;cursor:pointer;border:none;transition:all .15s;}
+.btn-navy{background:var(--navy);color:#fff;}.btn-navy:hover{background:#152e4a;}
+.btn-teal{background:var(--teal);color:#fff;}.btn-teal:hover{background:#236673;}
+.btn-ghost{background:#fff;color:var(--muted);border:1.5px solid var(--border);}.btn-ghost:hover{border-color:var(--navy);color:var(--navy);}
+.btn-sm{padding:.28rem .6rem;font-size:.72rem;}
+.btn-red{background:#FDE8E8;color:var(--red);}
+.btn-green-lt{background:var(--green-lt);color:var(--green);}
+
+.pill{display:inline-block;padding:.2rem .55rem;border-radius:10px;font-size:.68rem;font-weight:600;}
+.pill-green{background:var(--green-lt);color:var(--green);}
+.pill-gray{background:#F0F0F0;color:var(--muted);}
+
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--muted);font-size:.85rem;}
+.empty-icon{font-size:2rem;margin-bottom:.5rem;}
+
+/* ─── Form fields ───────────────────────────────────────── */
+.field{margin-bottom:0;}
+.field label{display:block;font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:.28rem;}
+.field input,.field select,.field textarea{width:100%;padding:.55rem .7rem;border:1.5px solid var(--border);border-radius:7px;font-size:.85rem;font-family:inherit;color:var(--text);outline:none;transition:border .15s;background:#fff;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal);}
+.field textarea{resize:vertical;min-height:72px;line-height:1.5;}
+.row{display:grid;gap:.85rem;margin-bottom:.85rem;}
+.row-2{grid-template-columns:1fr 1fr;}
+.row-3{grid-template-columns:1fr 1fr 1fr;}
+@media(max-width:520px){.row-2,.row-3{grid-template-columns:1fr;}}
+.row-full{grid-template-columns:1fr;}
+.section-label{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);border-bottom:1.5px solid var(--teal-lt);padding-bottom:.35rem;margin:1.1rem 0 .75rem;}
+
+/* ─── Modal ─────────────────────────────────────────────── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;}
+.overlay.open{display:flex;}
+.modal{background:#fff;border-radius:12px;width:min(680px,100%);margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);overflow:hidden;}
+.modal-hdr{background:var(--navy);padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.modal-title{color:#fff;font-weight:600;font-size:.92rem;}
+.modal-close{background:none;border:none;color:#9ECDD6;font-size:1.3rem;cursor:pointer;line-height:1;padding:.2rem;}
+.modal-body{padding:1.25rem 1.5rem;}
+.modal-footer{display:flex;gap:.65rem;justify-content:flex-end;padding:.9rem 1.5rem;border-top:1px solid var(--border);background:#FAFAF8;flex-wrap:wrap;}
+
+/* ─── Location filter ───────────────────────────────────── */
+.loc-tabs{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.1rem;}
+.loc-btn{padding:.35rem .85rem;border-radius:20px;border:1.5px solid var(--border);font-size:.76rem;font-weight:500;font-family:inherit;background:#fff;color:var(--muted);cursor:pointer;transition:all .15s;}
+.loc-btn.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+/* ─── Referral cards ────────────────────────────────────── */
+.ref-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:.9rem;}
+.ref-card{background:#fff;border-radius:10px;border:1px solid var(--border);padding:.9rem 1rem;}
+.ref-spec{font-size:.63rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:.25rem;}
+.ref-name{font-weight:700;font-size:.92rem;color:var(--navy);margin-bottom:.2rem;}
+.ref-detail{font-size:.76rem;color:var(--muted);line-height:1.65;}
+.ref-detail a{color:var(--teal);text-decoration:none;}
+.ref-notes{margin-top:.45rem;font-size:.73rem;color:var(--muted);font-style:italic;background:var(--teal-lt);padding:.3rem .5rem;border-radius:4px;}
+.ref-actions{display:none;gap:.4rem;margin-top:.65rem;}
+body.admin .ref-actions{display:flex;}
+body.admin .admin-only{display:block !important;}
+
+/* ─── Form cards ─────────────────────────────────────────── */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.9rem;margin-bottom:2rem;}
+.form-card{background:#fff;border-radius:10px;border:1px solid var(--border);border-left:4px solid var(--teal);padding:1rem;cursor:pointer;transition:all .15s;}
+.form-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.09);transform:translateY(-1px);}
+.form-card-title{font-weight:700;color:var(--navy);font-size:.87rem;margin-bottom:.25rem;}
+.form-card-desc{font-size:.73rem;color:var(--muted);line-height:1.45;}
+
+/* ─── Resource cards ─────────────────────────────────────── */
+.res-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.9rem;margin-bottom:1.5rem;}
+.res-card{background:#fff;border-radius:10px;border:1px solid var(--border);padding:1rem;text-decoration:none;display:block;transition:all .15s;}
+.res-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.09);transform:translateY(-1px);}
+.res-icon{font-size:1.4rem;margin-bottom:.45rem;}
+.res-title{font-weight:700;color:var(--navy);font-size:.87rem;margin-bottom:.2rem;}
+.res-desc{font-size:.73rem;color:var(--muted);line-height:1.4;}
+
+/* ─── Signature ──────────────────────────────────────────── */
+.sig-canvas{display:block;width:100%;touch-action:none;cursor:crosshair;border:2px dashed var(--border);border-radius:8px;background:#fff;}
+.sig-mode-tabs{display:flex;gap:.5rem;margin-bottom:.75rem;}
+.sig-mode-btn{padding:.35rem .75rem;border-radius:6px;border:1.5px solid var(--border);font-size:.75rem;font-weight:500;font-family:inherit;background:#fff;color:var(--muted);cursor:pointer;}
+.sig-mode-btn.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+/* ─── Sig option on form ────────────────────────────────── */
+.sig-bar{background:var(--teal-lt);border-top:1.5px solid var(--teal-md);padding:1rem 1.5rem;}
+.sig-bar-title{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);margin-bottom:.65rem;}
+.sig-radios{display:flex;gap:1.25rem;flex-wrap:wrap;margin-bottom:.75rem;}
+.sig-radios label{display:flex;align-items:center;gap:.35rem;font-size:.82rem;cursor:pointer;}
+.sig-sub{display:none;}
+.sig-sub.show{display:block;}
+
+/* ─── Letter (print preview) ────────────────────────────── */
+#letter-overlay{display:none;position:fixed;inset:0;background:#fff;z-index:800;overflow-y:auto;}
+#letter-overlay.show{display:block;}
+#letter-toolbar{position:sticky;top:0;background:var(--navy);padding:.6rem 1rem;display:flex;gap:.6rem;align-items:center;z-index:1;}
+.ltb-btn{padding:.4rem .85rem;border-radius:6px;font-size:.78rem;font-weight:600;font-family:inherit;cursor:pointer;border:none;}
+.ltb-print{background:var(--teal);color:#fff;}
+.ltb-close{background:rgba(255,255,255,.15);color:#fff;}
+#letter-body{max-width:750px;margin:0 auto;padding:1in;font-family:'DM Sans',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;}
+.ltr-hdr{border-bottom:2px solid var(--navy);padding-bottom:.6rem;margin-bottom:1.4rem;}
+.ltr-name{font-family:'DM Serif Display',serif;font-size:17pt;color:var(--navy);}
+.ltr-name span{color:var(--teal);}
+.ltr-loc{font-size:9pt;color:#555;margin-top:.2rem;}
+.ltr-date{margin-bottom:1.1rem;}
+.ltr-re{background:var(--teal-lt);border-left:3px solid var(--teal);padding:.45rem .7rem;margin-bottom:1.1rem;font-size:10pt;}
+.ltr-re strong{color:var(--navy);}
+.ltr-body p{margin-bottom:.7rem;}
+.ltr-table{width:100%;border-collapse:collapse;margin:.7rem 0;font-size:9.5pt;}
+.ltr-table th{background:var(--navy);color:#fff;padding:.3rem .55rem;text-align:left;font-weight:600;}
+.ltr-table td{padding:.3rem .55rem;border-bottom:1px solid var(--border);vertical-align:top;}
+.ltr-table tr:nth-child(even) td{background:#F8FBFC;}
+.ltr-close{margin-top:1.4rem;}
+.ltr-sig{margin-top:2.2rem;border-top:1px solid #ccc;padding-top:.3rem;font-size:9.5pt;color:#444;}
+.ltr-sig img{max-height:52px;max-width:200px;object-fit:contain;display:block;margin-bottom:.2rem;}
+.ltr-footer{margin-top:1.8rem;padding-top:.65rem;border-top:1.5px solid var(--navy);font-size:7.5pt;color:#777;text-align:center;}
+.ltr-footer-locs{display:flex;justify-content:center;gap:1.75rem;flex-wrap:wrap;margin-top:.3rem;}
+.ltr-footer-loc strong{display:block;color:var(--navy);font-size:8pt;}
+
+@media print{
+  @page { margin: 0.5in; size: letter; }
+  #letter-toolbar{display:none!important;}
+  #letter-overlay{display:block!important;position:static!important;overflow:visible!important;}
+  body>*:not(#letter-overlay){display:none!important;}
+  #letter-body{padding:.3in .1in;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ LOCK SCREEN ══════════════════════════ -->
+<div id="lock">
+  <div class="lock-card">
+    <div class="lock-brand">THE SPARK <span>OPTOMETRY</span></div>
+    <div class="lock-sub">Doctor Portal</div>
+    <input type="password" id="pw-input" placeholder="Enter password" autocomplete="off">
+    <div class="lock-err" id="pw-err">Incorrect password — try again.</div>
+    <button class="btn-primary" id="pw-btn">Enter Portal</button>
+  </div>
+</div>
+
+<!-- ══════════════════ HEADER ════════════════════════════════ -->
+<header>
+  <div>
+    <div class="brand">THE SPARK <span>OPTOMETRY</span></div>
+    <div class="brand-sub">Doctor Portal</div>
+  </div>
+  <div class="hdr-right">
+    <a class="hdr-link" href="https://www.hellofax.com" target="_blank">📠 HelloFax</a>
+    <button id="admin-btn" onclick="toggleAdmin()">⚙ Admin</button>
+  </div>
+</header>
+
+<!-- ══════════════════ NAV ═══════════════════════════════════ -->
+<nav>
+  <button class="nav-btn active" data-tab="referrals">Referral Sources</button>
+  <button class="nav-btn" data-tab="forms">Referral Forms</button>
+  <button class="nav-btn" data-tab="lasik">LASIK</button>
+  <button class="nav-btn" data-tab="resources">Resources</button>
+  <button class="nav-btn" data-tab="signature">✍ My Signature</button>
+</nav>
+
+<main>
+
+<!-- ════ TAB: REFERRAL SOURCES ══════════════════════════════ -->
+<div class="tab active" id="tab-referrals">
+  <div class="sec-hdr">
+    <div>
+      <div class="sec-title">Referral Sources</div>
+      <div class="sec-desc">Specialist contacts by location</div>
+    </div>
+    <button class="btn btn-teal admin-only" style="display:none" onclick="openRefModal()">+ Add Source</button>
+  </div>
+  <div class="loc-tabs">
+    <button class="loc-btn active" data-loc="sc">Santa Clara / Sunnyvale</button>
+    <button class="loc-btn" data-loc="f">Fremont</button>
+    <button class="loc-btn" data-loc="wc">Walnut Creek</button>
+  </div>
+  <div class="ref-grid" id="ref-grid">
+    <div class="empty"><div class="empty-icon">🔄</div>Loading...</div>
+  </div>
+</div>
+
+<!-- ════ TAB: REFERRAL FORMS ════════════════════════════════ -->
+<div class="tab" id="tab-forms">
+  <div class="sec-hdr">
+    <div>
+      <div class="sec-title">Referral Forms</div>
+      <div class="sec-desc">Fill in and generate a print-ready letter</div>
+    </div>
+  </div>
+  <div class="form-grid">
+    <div class="form-card" onclick="openForm('pcp')">
+      <div class="form-card-title">Letter to PCP — Ocular Findings (DM / HTN)</div>
+      <div class="form-card-desc">Retinopathy findings or healthy retina update for primary care</div>
+    </div>
+    <div class="form-card" onclick="openForm('glaucoma')">
+      <div class="form-card-title">Referral to OMD — Glaucoma</div>
+      <div class="form-card-desc">IOP, C/D ratio, VF, OCT findings</div>
+    </div>
+    <div class="form-card" onclick="openForm('cataract')">
+      <div class="form-card-title">Referral to OMD — Cataract</div>
+      <div class="form-card-desc">BCVA, pinhole, grading per eye</div>
+    </div>
+    <div class="form-card" onclick="openForm('cornea')">
+      <div class="form-card-title">Referral to OMD — Cornea</div>
+      <div class="form-card-desc">Corneal pathology or disease</div>
+    </div>
+    <div class="form-card" onclick="openForm('retina')">
+      <div class="form-card-title">Referral to OMD — Retina</div>
+      <div class="form-card-desc">Retinal findings with urgency level</div>
+    </div>
+    <div class="form-card" onclick="openForm('general')">
+      <div class="form-card-title">Referral to OMD — General</div>
+      <div class="form-card-desc">Free-text referral for any indication</div>
+    </div>
+    <div class="form-card" onclick="openForm('md_general')">
+      <div class="form-card-title">Letter to MD — General</div>
+      <div class="form-card-desc">Plaquenil, Tamoxifen, Neuro, or any other correspondence to a physician</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ TAB: LASIK ══════════════════════════════════════════ -->
+<div class="tab" id="tab-lasik">
+  <div class="sec-hdr">
+    <div>
+      <div class="sec-title">LASIK Resources</div>
+      <div class="sec-desc">Referral partners for refractive surgery</div>
+    </div>
+  </div>
+  <div class="res-grid">
+    <a class="res-card" href="https://www.nvisioncenters.com/od-electronic-referral-consult-form/" target="_blank">
+      <div class="res-icon">👁</div>
+      <div class="res-title">NVision — Referral Form</div>
+      <div class="res-desc">Submit an electronic referral to NVision refractive surgery centers</div>
+    </a>
+    <a class="res-card" href="https://rcrm.mdprospects.com/public_referral_form/3ebd6ddc-cba0-4834-bd87-d8123c50ae55/4ddf3bc8-b100-4349-a5d3-a841b05c50ef/5ed0a56c-c157-4693-85bf-0c67ab69fa0c/?doctor_type=3" target="_blank">
+      <div class="res-icon">🔬</div>
+      <div class="res-title">iQLaser — Referral Form</div>
+      <div class="res-desc">Submit an electronic referral to iQLaser refractive surgery</div>
+    </a>
+  </div>
+  <div class="info-block">
+    <div class="info-title">Co-management notes</div>
+    <div class="info-row"><span class="info-lbl">Post-op care</span><span class="info-val">Post-surgical care is co-managed at our office. Confirm co-management agreement with the surgical center at time of referral.</span></div>
+    <div class="info-row"><span class="info-lbl">Pre-op contact lens</span><span class="info-val">Soft lenses: out for at least 2 weeks before surgical evaluation. Rigid lenses (Ortho-K): out for at least 3 weeks.</span></div>
+  </div>
+</div>
+
+<!-- ════ TAB: RESOURCES ══════════════════════════════════════ -->
+<div class="tab" id="tab-resources">
+  <div class="sec-hdr">
+    <div>
+      <div class="sec-title">Resources & Quick Links</div>
+    </div>
+  </div>
+  <div class="info-block">
+    <div class="info-title">💊 iPrescribe — E-Prescribing</div>
+    <div class="info-row"><span class="info-lbl">Important</span><span class="info-val" style="color:var(--navy);font-weight:600">To prescribe medications, download the iPrescribe app on your phone and log in with your credentials. If you don't have your credentials, ask Dr. Yang.</span></div>
+    <div class="info-row"><span class="info-lbl">iOS</span><span class="info-val"><a href="https://apps.apple.com/us/app/iprescribe/id492015054" target="_blank">Download on App Store</a></span></div>
+    <div class="info-row"><span class="info-lbl">Android</span><span class="info-val"><a href="https://play.google.com/store/apps/details?id=com.drfirst.iprescribepro" target="_blank">Download on Google Play</a></span></div>
+    <div class="info-row"><span class="info-lbl">Support</span><span class="info-val"><a href="https://help.iprescribe.com" target="_blank">help.iprescribe.com</a></span></div>
+  </div>
+  <div class="info-block">
+    <div class="info-title">📠 HelloFax — Online Faxing</div>
+    <div class="info-row"><span class="info-lbl">Login</span><span class="info-val"><a href="https://www.hellofax.com/login" target="_blank">hellofax.com/login</a></span></div>
+    <div class="info-row"><span class="info-lbl">How to fax</span><span class="info-val">Log in → Send a Fax → upload the PDF → enter recipient fax number</span></div>
+  </div>
+  <div class="info-block">
+    <div class="info-title">🔗 Quick Links</div>
+    <div class="info-row"><span class="info-lbl">Myopia Tracker</span><span class="info-val"><a href="https://myopiatracker.thesparkoptometry.com" target="_blank">myopiatracker.thesparkoptometry.com</a></span></div>
+    <div class="info-row"><span class="info-lbl">Myopia Calculator</span><span class="info-val"><a href="https://myopiacalculator.thesparkoptometry.com" target="_blank">myopiacalculator.thesparkoptometry.com</a></span></div>
+    <div class="info-row"><span class="info-lbl">Practice Hours</span><span class="info-val"><a href="https://hours.thesparkoptometry.com" target="_blank">hours.thesparkoptometry.com</a></span></div>
+    <div class="info-row"><span class="info-lbl">CRT Calculator</span><span class="info-val"><a href="https://crtcalculator.com" target="_blank">crtcalculator.com</a></span></div>
+    <div class="info-row"><span class="info-lbl">OSRX Pharmaceuticals</span><span class="info-val"><a href="https://osrxpharmaceuticals.com" target="_blank">osrxpharmaceuticals.com</a> · (855) 466-1076</span></div>
+  </div>
+</div>
+
+<!-- ════ TAB: MY SIGNATURE ═══════════════════════════════════ -->
+<div class="tab" id="tab-signature">
+  <div class="sec-hdr">
+    <div>
+      <div class="sec-title">My Signature</div>
+      <div class="sec-desc">Set up your personal signature for referral letters</div>
+    </div>
+  </div>
+
+  <div class="info-block">
+    <div class="info-title">Select Your Name</div>
+    <div style="display:flex;gap:.75rem;align-items:flex-end;flex-wrap:wrap;margin-top:.25rem">
+      <div class="field" style="flex:1;min-width:180px">
+        <label>Doctor Name</label>
+        <select id="sig-who"></select>
+      </div>
+      <button class="btn btn-navy" onclick="showSigSetup()">Continue →</button>
+    </div>
+  </div>
+
+  <div id="sig-setup" style="display:none">
+    <div class="info-block">
+      <div class="info-title" id="sig-setup-label">Set Up Signature</div>
+      <div class="sig-mode-tabs">
+        <button class="sig-mode-btn active" onclick="setSigMode('draw',this)">✏ Draw</button>
+        <button class="sig-mode-btn" onclick="setSigMode('upload',this)">📤 Upload Image</button>
+      </div>
+      <div id="sig-draw-wrap">
+        <canvas id="sig-canvas" width="580" height="140" class="sig-canvas"></canvas>
+        <button class="btn btn-ghost btn-sm" style="margin-top:.4rem" onclick="clearCanvas('sig-canvas')">Clear</button>
+      </div>
+      <div id="sig-upload-wrap" style="display:none;margin-bottom:.5rem">
+        <input type="file" id="sig-file" accept="image/*" style="margin-bottom:.5rem">
+        <div id="sig-upload-preview"></div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:.9rem;margin-top:.9rem">
+        <div id="sig-existing-note" style="display:none;background:var(--green-lt);border-radius:6px;padding:.5rem .75rem;font-size:.8rem;color:var(--green);margin-bottom:.75rem">
+          ✓ You have an existing signature. Enter your current password below to update it.
+        </div>
+        <div class="row row-2" id="sig-cur-pw-row" style="display:none">
+          <div class="field"><label>Current Password</label><input type="password" id="sig-cur-pw" placeholder="Current signature password"></div>
+        </div>
+        <div class="row row-2">
+          <div class="field"><label id="sig-pw-lbl">Set Password</label><input type="password" id="sig-new-pw" placeholder="Choose a password"></div>
+          <div class="field"><label>Confirm Password</label><input type="password" id="sig-confirm-pw" placeholder="Confirm password"></div>
+        </div>
+        <div id="sig-err" style="color:var(--red);font-size:.78rem;margin-bottom:.5rem;display:none"></div>
+        <button class="btn btn-teal" onclick="saveSig()">Save Signature</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin: doctor list management -->
+  <div class="info-block admin-only" style="display:none;margin-top:1.5rem">
+    <div class="info-title">⚙ Admin — Doctor List</div>
+    <div id="doctor-list"></div>
+    <div style="display:flex;gap:.65rem;margin-top:.85rem;flex-wrap:wrap">
+      <input type="text" id="new-doc-name" placeholder="Full name e.g. Christine Yang, OD"
+        style="flex:1;padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:7px;font-size:.83rem;font-family:inherit;outline:none">
+      <button class="btn btn-teal" id="add-doc-btn">+ Add Doctor</button>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- ══════════════════ REFERRAL FORM MODAL ═══════════════════ -->
+<div class="overlay" id="form-overlay">
+  <div class="modal" style="width:min(740px,100%)">
+    <div class="modal-hdr">
+      <span class="modal-title" id="form-title">Referral Form</span>
+      <button class="modal-close" id="form-close">✕</button>
+    </div>
+    <div class="modal-body" id="form-body" style="max-height:70vh;overflow-y:auto"></div>
+    <!-- Signature bar -->
+    <div class="sig-bar">
+      <div class="sig-bar-title">Signature</div>
+      <div class="sig-radios">
+        <label><input type="radio" name="sig-opt" value="type" checked onchange="onSigOpt('type')"> Type name only</label>
+        <label><input type="radio" name="sig-opt" value="saved" onchange="onSigOpt('saved')"> Use my saved signature</label>
+        <label><input type="radio" name="sig-opt" value="draw" onchange="onSigOpt('draw')"> Draw a new signature</label>
+      </div>
+      <div class="sig-sub" id="sig-saved-sub">
+        <div class="row row-2">
+          <div class="field"><label>Your Name</label><select id="sig-form-who"></select></div>
+          <div class="field"><label>Signature Password</label><input type="password" id="sig-form-pw" placeholder="Your password"></div>
+        </div>
+        <div id="sig-form-err" style="color:var(--red);font-size:.77rem;margin-top:.3rem;display:none"></div>
+      </div>
+      <div class="sig-sub" id="sig-draw-sub">
+        <canvas id="form-sig-canvas" width="520" height="110" class="sig-canvas" style="max-width:100%"></canvas>
+        <button class="btn btn-ghost btn-sm" style="margin-top:.35rem" onclick="clearCanvas('form-sig-canvas')">Clear</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="form-clear-btn">Clear Form</button>
+      <button class="btn btn-teal" id="form-generate-btn">🖨 Generate Letter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ ADD/EDIT REFERRAL MODAL ════════════════ -->
+<div class="overlay" id="ref-overlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-title" id="ref-modal-title">Add Referral Source</span>
+      <button class="modal-close" id="ref-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ref-edit-id">
+      <div class="row row-2">
+        <div class="field"><label>Name / Practice *</label><input type="text" id="r-name" placeholder="e.g. Dr. Smith / Bay Area Eye"></div>
+        <div class="field"><label>Specialty *</label>
+          <select id="r-spec">
+            <option value="">Select...</option>
+            <option>Glaucoma</option><option>Retina</option><option>Cornea</option>
+            <option>Cataract / Anterior Segment</option><option>Pediatric Ophthalmology</option>
+            <option>Neuro-Ophthalmology</option><option>Oculoplastics</option>
+            <option>General Ophthalmology</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="row row-2">
+        <div class="field"><label>Phone</label><input type="text" id="r-phone" placeholder="(xxx) xxx-xxxx"></div>
+        <div class="field"><label>Fax</label><input type="text" id="r-fax" placeholder="(xxx) xxx-xxxx"></div>
+      </div>
+      <div class="row row-full"><div class="field"><label>Address</label><input type="text" id="r-address" placeholder="Street, City, State ZIP"></div></div>
+      <div class="row row-full"><div class="field"><label>Website</label><input type="text" id="r-website" placeholder="https://..."></div></div>
+      <div class="row row-full"><div class="field"><label>Notes / Best For</label><textarea id="r-notes" placeholder="e.g. Best for complex glaucoma, takes VSP..."></textarea></div></div>
+      <div class="field" style="margin-top:.5rem">
+        <label>Locations *</label>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:.3rem">
+          <label style="display:flex;align-items:center;gap:.3rem;font-size:.83rem;cursor:pointer"><input type="checkbox" name="r-loc" value="sc"> Santa Clara / Sunnyvale</label>
+          <label style="display:flex;align-items:center;gap:.3rem;font-size:.83rem;cursor:pointer"><input type="checkbox" name="r-loc" value="f"> Fremont</label>
+          <label style="display:flex;align-items:center;gap:.3rem;font-size:.83rem;cursor:pointer"><input type="checkbox" name="r-loc" value="wc"> Walnut Creek</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="ref-cancel-btn">Cancel</button>
+      <button class="btn btn-navy" id="ref-save-btn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ LETTER OVERLAY ════════════════════════ -->
+<div id="letter-overlay">
+  <div id="letter-toolbar">
+    <button class="ltb-btn ltb-print" onclick="window.print()">🖨 Print / Save as PDF</button>
+    <button class="ltb-btn ltb-close" id="letter-close-btn">✕ Close</button>
+  </div>
+  <div id="letter-body"></div>
+</div>
+
+<script type="module">
+// ─── Firebase ────────────────────────────────────────────────
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc }
+  from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDpWF7_2czyzZaZ-g77yPOE1gxwh5C7wZg",
+  authDomain: "spark-doctor-portal.firebaseapp.com",
+  projectId: "spark-doctor-portal",
+  storageBucket: "spark-doctor-portal.firebasestorage.app",
+  messagingSenderId: "989715476181",
+  appId: "1:989715476181:web:22352ed6e4b083b8ffbc5c"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// Firestore helpers
+const FS = {
+  async getAll(col) {
+    const snap = await getDocs(collection(db, col));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+  async add(col, data) {
+    const ref = await addDoc(collection(db, col), data);
+    return ref.id;
+  },
+  async update(col, id, data) {
+    await updateDoc(doc(db, col, id), data);
+  },
+  async remove(col, id) {
+    await deleteDoc(doc(db, col, id));
+  },
+  async set(col, id, data) {
+    await setDoc(doc(db, col, id), data);
+  },
+};
+// ════════════════════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════════════════════
+const PW = 'Target123';
+const ADMIN_PW = 'Target123';
+
+const LOCS = {
+  sc: { name:'The Spark Optometry — Santa Clara',  addr:'2004 El Camino Real, Santa Clara, CA 95050', phone:'(408) 244-2831', fax:'(408) 241-3706' },
+  f:  { name:'The Spark Optometry — Fremont',       addr:'39201 Fremont Blvd, Fremont, CA 94538',      phone:'(510) 789-0914', fax:'(510) 795-7910' },
+  wc: { name:'The Spark Optometry — Walnut Creek',  addr:'1871 N. Main St, Walnut Creek, CA 94596',    phone:'(925) 627-8230', fax:'(925) 280-5530' },
+  sv: { name:'The Spark Optometry — Sunnyvale',     addr:'298 W McKinley Ave, Sunnyvale, CA 94086',    phone:'(408) 702-1029', fax:'(408) 962-2972' },
+};
+
+const FOOTER_HTML = `
+<div class="ltr-footer">
+  thesparkoptometry.com
+  <div class="ltr-footer-locs">
+    <div class="ltr-footer-loc"><strong>Santa Clara</strong>2004 El Camino Real<br>(408) 244-2831 · Fax (408) 241-3706</div>
+    <div class="ltr-footer-loc"><strong>Fremont</strong>39201 Fremont Blvd<br>(510) 789-0914 · Fax (510) 795-7910</div>
+    <div class="ltr-footer-loc"><strong>Walnut Creek</strong>1871 N. Main St<br>(925) 627-8230 · Fax (925) 280-5530</div>
+    <div class="ltr-footer-loc"><strong>Sunnyvale</strong>298 W McKinley Ave<br>(408) 702-1029 · Fax (408) 962-2972</div>
+  </div>
+</div>`;
+
+// ════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════
+let isAdmin = false;
+let currentLoc = 'sc';
+let currentFormType = '';
+let sigMode = 'type';
+let sigUploadData = null;
+let sigSetupMode = 'draw';
+let sigSetupUploadData = null;
+let referrals = [];
+let doctors = [];
+let editingRefId = null;
+
+// Local storage keys
+const KEY_REFS = 'spark_referrals';
+const KEY_DOCS = 'spark_doctors';
+
+async function loadData() {
+  try {
+    referrals = await FS.getAll('referrals');
+    if (!referrals.length) referrals = getDefaultReferrals();
+  } catch(e) {
+    console.warn('Firestore load failed, using defaults:', e);
+    referrals = getDefaultReferrals();
+  }
+  try {
+    doctors = await FS.getAll('doctors');
+    if (!doctors.length) doctors = getDefaultDoctors();
+  } catch(e) {
+    doctors = getDefaultDoctors();
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════
+async function init() {
+  // Load data from Firestore
+  await loadData();
+
+  // Auth
+  document.getElementById('pw-btn').onclick = login;
+  document.getElementById('pw-input').onkeydown = e => { if(e.key==='Enter') login(); };
+
+  // Nav
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    };
+  });
+
+  // Location filter
+  document.querySelectorAll('.loc-btn').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('.loc-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentLoc = btn.dataset.loc;
+      renderReferrals();
+    };
+  });
+
+  // Referral modal
+  document.getElementById('ref-close').onclick = closeRefModal;
+  document.getElementById('ref-cancel-btn').onclick = closeRefModal;
+  document.getElementById('ref-save-btn').onclick = saveRef;
+  document.getElementById('ref-overlay').onclick = e => { if(e.target===document.getElementById('ref-overlay')) closeRefModal(); };
+
+  // Form modal
+  document.getElementById('form-close').onclick = closeForm;
+  document.getElementById('form-overlay').onclick = e => { if(e.target===document.getElementById('form-overlay')) closeForm(); };
+  document.getElementById('form-clear-btn').onclick = clearFormFields;
+  document.getElementById('form-generate-btn').onclick = generateLetter;
+
+  // Letter close
+  document.getElementById('letter-close-btn').onclick = () => {
+    document.getElementById('letter-overlay').classList.remove('show');
+  };
+
+  // Signature setup on My Signature tab
+  document.getElementById('add-doc-btn').onclick = addDoctor;
+  document.getElementById('sig-file').onchange = e => {
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      sigSetupUploadData = ev.target.result;
+      document.getElementById('sig-upload-preview').innerHTML = `<img src="${sigSetupUploadData}" style="max-height:60px;border:1px solid var(--border);border-radius:6px;padding:.2rem;margin-top:.3rem">`;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  renderReferrals();
+  renderDoctors();
+  populateDoctorSelects();
+}
+
+// ════════════════════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════════════════════
+function login() {
+  const val = document.getElementById('pw-input').value;
+  if (val === PW) {
+    document.getElementById('lock').classList.add('gone');
+  } else {
+    document.getElementById('pw-err').style.display = 'block';
+    document.getElementById('pw-input').value = '';
+  }
+}
+
+function toggleAdmin() {
+  if (isAdmin) {
+    isAdmin = false;
+    document.body.classList.remove('admin');
+    document.getElementById('admin-btn').textContent = '⚙ Admin';
+    document.getElementById('admin-btn').classList.remove('on');
+  } else {
+    const pw = prompt('Enter admin password:');
+    if (pw === ADMIN_PW) {
+      isAdmin = true;
+      document.body.classList.add('admin');
+      document.getElementById('admin-btn').textContent = '✓ Admin On';
+      document.getElementById('admin-btn').classList.add('on');
+      renderDoctors();
+    } else if (pw !== null) {
+      alert('Incorrect password.');
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// DEFAULT DATA
+// ════════════════════════════════════════════════════════════
+function getDefaultReferrals() {
+  return [
+    { id:'r1', name:'Placeholder — Glaucoma Specialist', spec:'Glaucoma', phone:'(xxx) xxx-xxxx', fax:'(xxx) xxx-xxxx', address:'Address — update in admin', website:'', notes:'Update via admin mode', locs:['sc','f','wc'] },
+    { id:'r2', name:'Placeholder — Retina Specialist',   spec:'Retina',   phone:'(xxx) xxx-xxxx', fax:'(xxx) xxx-xxxx', address:'Address — update in admin', website:'', notes:'Update via admin mode', locs:['sc','f','wc'] },
+    { id:'r3', name:'Placeholder — Cornea Specialist',   spec:'Cornea',   phone:'(xxx) xxx-xxxx', fax:'(xxx) xxx-xxxx', address:'Address — update in admin', website:'', notes:'Update via admin mode', locs:['sc'] },
+  ];
+}
+
+function getDefaultDoctors() {
+  return [
+    { id:'d1', name:'Christine Yang, OD', hasSig:false, sig:null, pwHash:null },
+  ];
+}
+
+function saveData() {
+  // No-op — data is saved directly to Firestore per operation
+}
+
+// ════════════════════════════════════════════════════════════
+// REFERRALS
+// ════════════════════════════════════════════════════════════
+function renderReferrals() {
+  const grid = document.getElementById('ref-grid');
+  const filtered = referrals.filter(r => r.locs && r.locs.includes(currentLoc));
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="empty"><div class="empty-icon">📋</div>No referral sources for this location. Use Admin mode to add some.</div>';
+    return;
+  }
+  grid.innerHTML = filtered.map(r => `
+    <div class="ref-card">
+      <div class="ref-spec">${r.spec}</div>
+      <div class="ref-name">${r.name}</div>
+      <div class="ref-detail">
+        ${r.phone ? `📞 ${r.phone}<br>` : ''}
+        ${r.fax   ? `📠 ${r.fax}<br>` : ''}
+        ${r.address ? `📍 ${r.address}<br>` : ''}
+        ${r.website ? `<a href="${r.website}" target="_blank">🔗 Website</a>` : ''}
+      </div>
+      ${r.notes ? `<div class="ref-notes">${r.notes}</div>` : ''}
+      <div class="ref-actions">
+        <button class="btn btn-green-lt btn-sm" onclick='editRef("${r.id}")'>Edit</button>
+        <button class="btn btn-red btn-sm" onclick='deleteRef("${r.id}")'>Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+function openRefModal(id) {
+  editingRefId = id || null;
+  const ref = id ? referrals.find(r => r.id === id) : null;
+  document.getElementById('ref-modal-title').textContent = ref ? 'Edit Referral Source' : 'Add Referral Source';
+  document.getElementById('ref-edit-id').value = id || '';
+  document.getElementById('r-name').value = ref?.name || '';
+  document.getElementById('r-spec').value = ref?.spec || '';
+  document.getElementById('r-phone').value = ref?.phone || '';
+  document.getElementById('r-fax').value = ref?.fax || '';
+  document.getElementById('r-address').value = ref?.address || '';
+  document.getElementById('r-website').value = ref?.website || '';
+  document.getElementById('r-notes').value = ref?.notes || '';
+  document.querySelectorAll('input[name="r-loc"]').forEach(c => { c.checked = ref?.locs?.includes(c.value) || false; });
+  document.getElementById('ref-overlay').classList.add('open');
+}
+
+function editRef(id) { openRefModal(id); }
+
+function closeRefModal() { document.getElementById('ref-overlay').classList.remove('open'); }
+
+async function saveRef() {
+  const name = document.getElementById('r-name').value.trim();
+  const spec = document.getElementById('r-spec').value;
+  if (!name || !spec) { alert('Name and specialty are required.'); return; }
+  const locs = [...document.querySelectorAll('input[name="r-loc"]:checked')].map(c => c.value);
+  if (!locs.length) { alert('Select at least one location.'); return; }
+  const data = {
+    name, spec,
+    phone: document.getElementById('r-phone').value.trim(),
+    fax:   document.getElementById('r-fax').value.trim(),
+    address: document.getElementById('r-address').value.trim(),
+    website: document.getElementById('r-website').value.trim(),
+    notes: document.getElementById('r-notes').value.trim(),
+    locs,
+  };
+  try {
+    if (editingRefId) {
+      await FS.update('referrals', editingRefId, data);
+      const i = referrals.findIndex(r => r.id === editingRefId);
+      if (i >= 0) referrals[i] = { ...referrals[i], ...data };
+    } else {
+      const newId = await FS.add('referrals', data);
+      data.id = newId;
+      referrals.push(data);
+    }
+  } catch(e) {
+    console.warn('Firestore save failed:', e);
+    if (!editingRefId) { data.id = 'r' + Date.now(); referrals.push(data); }
+  }
+  renderReferrals();
+  closeRefModal();
+}
+
+async function deleteRef(id) {
+  if (!confirm('Delete this referral source?')) return;
+  try { await FS.remove('referrals', id); } catch(e) { console.warn(e); }
+  referrals = referrals.filter(r => r.id !== id);
+  renderReferrals();
+}
+
+// ════════════════════════════════════════════════════════════
+// DOCTORS
+// ════════════════════════════════════════════════════════════
+function renderDoctors() {
+  const el = document.getElementById('doctor-list');
+  if (!el) return;
+  el.innerHTML = doctors.map(d => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem .25rem;border-bottom:1px solid var(--border);font-size:.83rem">
+      <span>${d.name}</span>
+      <div style="display:flex;gap:.4rem;align-items:center">
+        <span class="pill ${d.hasSig?'pill-green':'pill-gray'}">${d.hasSig?'✓ Sig set':'No sig'}</span>
+        <button class="btn btn-red btn-sm" onclick="deleteDoctor('${d.id}')">Remove</button>
+      </div>
+    </div>`).join('') || '<div style="padding:.5rem;color:var(--muted);font-size:.83rem">No doctors yet.</div>';
+}
+
+function populateDoctorSelects() {
+  const opts = '<option value="">Select...</option>' + doctors.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+  document.getElementById('sig-who').innerHTML = opts;
+  document.getElementById('sig-form-who').innerHTML = opts;
+}
+
+async function addDoctor() {
+  const name = document.getElementById('new-doc-name').value.trim();
+  if (!name) return;
+  const data = { name, hasSig:false, sig:null, pwHash:null };
+  try { const newId = await FS.add('doctors', data); data.id = newId; }
+  catch(e) { data.id = 'd'+Date.now(); }
+  doctors.push(data);
+  document.getElementById('new-doc-name').value = '';
+  renderDoctors();
+  populateDoctorSelects();
+}
+
+async function deleteDoctor(id) {
+  if (!confirm('Remove this doctor?')) return;
+  try { await FS.remove('doctors', id); } catch(e) { console.warn(e); }
+  doctors = doctors.filter(d => d.id !== id);
+  renderDoctors();
+  populateDoctorSelects();
+}
+
+// ════════════════════════════════════════════════════════════
+// SIGNATURE SETUP
+// ════════════════════════════════════════════════════════════
+function showSigSetup() {
+  const id = document.getElementById('sig-who').value;
+  if (!id) { alert('Please select your name.'); return; }
+  const doc = doctors.find(d => d.id === id);
+  document.getElementById('sig-setup').style.display = 'block';
+  document.getElementById('sig-setup-label').textContent = `Signature for: ${doc.name}`;
+  const hasExisting = doc.hasSig;
+  document.getElementById('sig-existing-note').style.display = hasExisting ? 'block' : 'none';
+  document.getElementById('sig-cur-pw-row').style.display = hasExisting ? 'grid' : 'none';
+  document.getElementById('sig-pw-lbl').textContent = hasExisting ? 'New Password (blank = keep current)' : 'Set Password';
+  initCanvas('sig-canvas');
+  sigSetupMode = 'draw';
+  sigSetupUploadData = null;
+}
+
+function setSigMode(mode, btn) {
+  sigSetupMode = mode;
+  document.querySelectorAll('.sig-mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('sig-draw-wrap').style.display = mode==='draw' ? 'block' : 'none';
+  document.getElementById('sig-upload-wrap').style.display = mode==='upload' ? 'block' : 'none';
+  if (mode==='draw') initCanvas('sig-canvas');
+}
+
+async function saveSig() {
+  const errEl = document.getElementById('sig-err');
+  errEl.style.display = 'none';
+  const id = document.getElementById('sig-who').value;
+  const doc = doctors.find(d => d.id === id);
+  if (!doc) { errEl.textContent='Select your name.'; errEl.style.display='block'; return; }
+
+  let imgData = null;
+  if (sigSetupMode === 'draw') {
+    const canvas = document.getElementById('sig-canvas');
+    const px = canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
+    if (!px.some((v,i) => i%4===3 && v>0)) { errEl.textContent='Please draw your signature.'; errEl.style.display='block'; return; }
+    imgData = canvas.toDataURL('image/png');
+  } else {
+    if (!sigSetupUploadData) { errEl.textContent='Please upload a signature image.'; errEl.style.display='block'; return; }
+    imgData = sigSetupUploadData;
+  }
+
+  const newPw = document.getElementById('sig-new-pw').value;
+  const confirmPw = document.getElementById('sig-confirm-pw').value;
+  const curPw = document.getElementById('sig-cur-pw').value;
+
+  if (doc.hasSig && curPw) {
+    if (await hash(curPw) !== doc.pwHash) { errEl.textContent='Current password is incorrect.'; errEl.style.display='block'; return; }
+  }
+  if (!doc.hasSig && !newPw) { errEl.textContent='Please set a password.'; errEl.style.display='block'; return; }
+  if (newPw && newPw !== confirmPw) { errEl.textContent='Passwords do not match.'; errEl.style.display='block'; return; }
+
+  doc.sig = imgData;
+  doc.hasSig = true;
+  doc.pwHash = newPw ? await hash(newPw) : doc.pwHash;
+  try { await FS.update('doctors', doc.id, { sig: doc.sig, hasSig: true, pwHash: doc.pwHash }); }
+  catch(e) { console.warn('Firestore sig save failed:', e); }
+  renderDoctors();
+  alert(`Signature saved for ${doc.name}!`);
+  ['sig-new-pw','sig-confirm-pw','sig-cur-pw'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  clearCanvas('sig-canvas');
+}
+
+// ════════════════════════════════════════════════════════════
+// CANVAS HELPERS
+// ════════════════════════════════════════════════════════════
+function initCanvas(id) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle = '#1B3A5C'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  let drawing = false, lx = 0, ly = 0;
+  function pos(e) {
+    const r = canvas.getBoundingClientRect();
+    const sx = canvas.width/r.width, sy = canvas.height/r.height;
+    const s = e.touches ? e.touches[0] : e;
+    return [(s.clientX-r.left)*sx, (s.clientY-r.top)*sy];
+  }
+  canvas.onmousedown = canvas.ontouchstart = e => { e.preventDefault(); drawing=true; [lx,ly]=pos(e); };
+  canvas.onmousemove = canvas.ontouchmove = e => {
+    if(!drawing) return; e.preventDefault();
+    const [x,y]=pos(e);
+    ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(x,y); ctx.stroke();
+    [lx,ly]=[x,y];
+  };
+  canvas.onmouseup = canvas.onmouseleave = canvas.ontouchend = () => drawing=false;
+}
+
+function clearCanvas(id) {
+  const c = document.getElementById(id);
+  if (c) c.getContext('2d').clearRect(0,0,c.width,c.height);
+}
+
+// ════════════════════════════════════════════════════════════
+// FORM SIGNATURE OPTIONS
+// ════════════════════════════════════════════════════════════
+function onSigOpt(val) {
+  sigMode = val;
+  document.getElementById('sig-saved-sub').classList.toggle('show', val==='saved');
+  document.getElementById('sig-draw-sub').classList.toggle('show', val==='draw');
+  if (val==='draw') initCanvas('form-sig-canvas');
+}
+
+// ════════════════════════════════════════════════════════════
+// FORMS
+// ════════════════════════════════════════════════════════════
+const TODAY = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+
+const PATIENT_TOP = `
+<div class="section-label">Patient Information</div>
+<div class="row row-3">
+  <div class="field"><label>Patient Name</label><input type="text" data-key="patient" placeholder="Last, First"></div>
+  <div class="field"><label>Date of Birth</label><input type="text" data-key="dob" placeholder="MM / DD / YYYY" maxlength="14" class="dob-input"></div>
+  <div class="field"><label>Date</label><input type="text" data-key="date" value="${TODAY}"></div>
+</div>
+<div class="row row-2">
+  <div class="field"><label>Phone</label><input type="text" data-key="phone" placeholder="(xxx) xxx-xxxx"></div>
+  <div class="field"><label>Insurance</label><input type="text" data-key="insurance" placeholder="Insurance plan"></div>
+</div>
+<div class="section-label">Referring Doctor</div>
+<div class="row row-2">
+  <div class="field"><label>Referring Doctor</label><input type="text" data-key="dr" placeholder="First name Last name"></div>
+  <div class="field"><label>Location</label>
+    <select data-key="loc">
+      <option value="sc">The Spark Optometry — Santa Clara</option>
+      <option value="f">The Spark Optometry — Fremont</option>
+      <option value="wc">The Spark Optometry — Walnut Creek</option>
+      <option value="sv">The Spark Optometry — Sunnyvale</option>
+    </select>
+  </div>
+</div>
+<div class="row row-full"><div class="field"><label>To (Recipient / Salutation)</label><input type="text" data-key="to" placeholder="e.g. Dear Dr. Smith,"></div></div>`;
+
+const FORMS_DEF = {
+  pcp: {
+    title: 'Letter to PCP — Ocular Findings (DM / HTN)',
+    html: PATIENT_TOP + `
+<div class="section-label">Examination</div>
+<div class="row row-2">
+  <div class="field">
+    <label>Exam Type (check all that apply)</label>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:.35rem">
+      <label style="display:flex;align-items:center;gap:.3rem;font-size:.83rem;cursor:pointer"><input type="checkbox" data-key="exam_dfe"> Dilated Fundus Exam</label>
+      <label style="display:flex;align-items:center;gap:.3rem;font-size:.83rem;cursor:pointer"><input type="checkbox" data-key="exam_oct"> OCT</label>
+      <label style="display:flex;align-items:center;gap:.3rem;font-size:.83rem;cursor:pointer"><input type="checkbox" data-key="exam_optomap"> Optomap</label>
+    </div>
+  </div>
+  <div class="field"><label>Diagnosis</label>
+    <select data-key="dx">
+      <option>No retinopathy — retina healthy</option>
+      <option>Diabetic Retinopathy</option>
+      <option>Hypertensive Retinopathy</option>
+      <option>Diabetic and Hypertensive Retinopathy</option>
+    </select>
+  </div>
+</div>
+<div class="row row-full">
+  <div class="field"><label>Severity (if retinopathy present)</label>
+    <select data-key="severity">
+      <option value="">N/A — no retinopathy</option>
+      <option>Mild non-proliferative</option><option>Moderate non-proliferative</option>
+      <option>Severe non-proliferative</option><option>Proliferative</option>
+      <option>Hypertensive — Grade I</option><option>Hypertensive — Grade II</option>
+      <option>Hypertensive — Grade III</option><option>Hypertensive — Grade IV</option>
+    </select>
+  </div>
+</div>
+<div class="row row-2">
+  <div class="field"><label>Right Eye (OD) Findings</label><textarea data-key="od" placeholder="e.g. No hemorrhages, exudates, or neovascularization..."></textarea></div>
+  <div class="field"><label>Left Eye (OS) Findings</label><textarea data-key="os" placeholder="e.g. No hemorrhages, exudates, or neovascularization..."></textarea></div>
+</div>
+<div class="row row-2">
+  <div class="field"><label>Recommended Follow-Up Interval</label>
+    <select data-key="followup">
+      <option>annually</option>
+      <option>in 6 months</option>
+      <option>in 3 months</option>
+      <option>as clinically indicated</option>
+    </select>
+  </div>
+  <div class="field"><label>Follow-Up Note (optional)</label><input type="text" data-key="followup_note" placeholder="e.g. sooner if symptoms worsen"></div>
+</div>
+<div class="row row-full"><div class="field"><label>Recommendation / Message to PCP</label><textarea data-key="rec" placeholder="e.g. Please review blood sugar control. / No changes — continue current management."></textarea></div></div>
+<div class="row row-full"><div class="field"><label>Additional Notes</label><textarea data-key="notes" placeholder="Optional..."></textarea></div></div>`,
+    letter: (v, sigHTML) => {
+      const noRet = v.dx && v.dx.includes('No retinopathy');
+      const examParts = [];
+      if (v.exam_dfe === 'true') examParts.push('dilated fundus examination');
+      if (v.exam_oct === 'true') examParts.push('optical coherence tomography (OCT)');
+      if (v.exam_optomap === 'true') examParts.push('Optomap retinal imaging');
+      const examStr = examParts.length === 0 ? 'a comprehensive eye examination'
+        : examParts.length === 1 ? examParts[0]
+        : examParts.length === 2 ? examParts.join(' and ')
+        : examParts.slice(0,-1).join(', ') + ', and ' + examParts[examParts.length-1];
+      const followup = v.followup || 'annually';
+      const followupNote = v.followup_note ? `, ${v.followup_note}` : '';
+      return `
+${ltrHdr(v.loc)}
+<div class="ltr-date">${v.date}</div>
+<p>${v.to || 'Dear Physician,'}</p>
+<div class="ltr-re"><strong>RE:</strong> ${v.patient||'___'} &nbsp;·&nbsp; DOB: ${v.dob||'___'}</div>
+<div class="ltr-body">
+<p>I am writing to share the results of a recent ${examStr} performed on the above-named patient at our office.</p>
+<p><strong>Findings:</strong> ${v.dx}${v.severity&&!noRet?` — ${v.severity}`:''}</p>
+${(v.od||v.os)?`<table class="ltr-table"><tr><th>Eye</th><th>Findings</th></tr>${v.od?`<tr><td><strong>OD</strong></td><td>${v.od}</td></tr>`:''} ${v.os?`<tr><td><strong>OS</strong></td><td>${v.os}</td></tr>`:''}</table>`:''}
+${v.rec?`<p>${v.rec}</p>`:''}
+${v.notes?`<p>${v.notes}</p>`:''}
+<p>We recommend follow-up eye examination ${followup}${followupNote}. Please do not hesitate to contact our office with any questions.</p>
+</div>
+<div class="ltr-close"><p>Sincerely,</p></div>
+${sigHTML}
+${FOOTER_HTML}`;
+    }
+  },
+    glaucoma: {
+    title: 'Referral to OMD — Glaucoma',
+    html: PATIENT_TOP + `
+<div class="section-label">Glaucoma Findings</div>
+<div class="row row-3">
+  <div class="field"><label>IOP OD</label><input type="text" data-key="iop_od" placeholder="mmHg"></div>
+  <div class="field"><label>IOP OS</label><input type="text" data-key="iop_os" placeholder="mmHg"></div>
+  <div class="field"><label>CCT OD / OS</label><input type="text" data-key="cct" placeholder="μm / μm"></div>
+</div>
+<div class="row row-2">
+  <div class="field"><label>C/D Ratio OD</label><input type="text" data-key="cd_od" placeholder="0.0"></div>
+  <div class="field"><label>C/D Ratio OS</label><input type="text" data-key="cd_os" placeholder="0.0"></div>
+</div>
+<div class="row row-2">
+  <div class="field"><label>Visual Field Results</label><textarea data-key="vf" placeholder="VF findings..."></textarea></div>
+  <div class="field"><label>OCT / RNFL Notes</label><textarea data-key="oct" placeholder="OCT findings..."></textarea></div>
+</div>
+<div class="row row-full"><div class="field"><label>Reason for Referral / Clinical Notes</label><textarea data-key="reason" placeholder="e.g. Elevated IOP, suspicious disc, progressive changes..."></textarea></div></div>
+<div class="row row-full"><div class="field"><label>Current Medications</label><input type="text" data-key="meds" placeholder="Glaucoma drops, systemic meds..."></div></div>`,
+    letter: (v, sigHTML) => `
+${ltrHdr(v.loc)}
+<div class="ltr-date">${v.date}</div>
+<p>${v.to || 'Dear Colleague,'}</p>
+<div class="ltr-re"><strong>RE: Glaucoma Referral</strong> &nbsp;·&nbsp; ${v.patient||'___'} &nbsp;·&nbsp; DOB: ${v.dob||'___'}</div>
+<div class="ltr-body">
+<p>I am referring the above-named patient for glaucoma evaluation and management. The following findings prompted this referral:</p>
+<table class="ltr-table">
+<tr><th colspan="2">Clinical Findings</th></tr>
+<tr><td><strong>IOP</strong></td><td>OD: ${v.iop_od||'—'} &nbsp;|&nbsp; OS: ${v.iop_os||'—'}</td></tr>
+<tr><td><strong>CCT</strong></td><td>${v.cct||'—'}</td></tr>
+<tr><td><strong>C/D Ratio</strong></td><td>OD: ${v.cd_od||'—'} &nbsp;|&nbsp; OS: ${v.cd_os||'—'}</td></tr>
+${v.vf?`<tr><td><strong>Visual Fields</strong></td><td>${v.vf}</td></tr>`:''}
+${v.oct?`<tr><td><strong>OCT / RNFL</strong></td><td>${v.oct}</td></tr>`:''}
+${v.meds?`<tr><td><strong>Current Medications</strong></td><td>${v.meds}</td></tr>`:''}
+</table>
+${v.reason?`<p>${v.reason}</p>`:''}
+<p>I appreciate your evaluation of this patient. Please feel free to contact our office with any questions.</p>
+</div>
+<div class="ltr-close"><p>Sincerely,</p></div>
+${sigHTML}
+${FOOTER_HTML}`
+  },
+  cataract: {
+    title: 'Referral to OMD — Cataract',
+    html: PATIENT_TOP + `
+<div class="section-label">Visual Acuity & Refraction</div>
+<div class="row row-3">
+  <div class="field"><label>BCVA OD</label><input type="text" data-key="bcva_od" value="20/"></div>
+  <div class="field"><label>BCVA with Pinhole OD</label><input type="text" data-key="ph_od" value="20/"></div>
+  <div class="field"><label>Refractive Error OD</label><input type="text" data-key="rx_od" placeholder="-2.50 -1.00 x 180"></div>
+</div>
+<div class="row row-3">
+  <div class="field"><label>BCVA OS</label><input type="text" data-key="bcva_os" value="20/"></div>
+  <div class="field"><label>BCVA with Pinhole OS</label><input type="text" data-key="ph_os" value="20/"></div>
+  <div class="field"><label>Refractive Error OS</label><input type="text" data-key="rx_os" placeholder="-2.50 -1.00 x 180"></div>
+</div>
+<div class="section-label">Cataract Grading — Right Eye (OD)</div>
+<div class="row row-3">
+  <div class="field"><label>Nuclear Sclerosis OD</label>
+    <select data-key="ns_od"><option value="">None</option><option>NS 1+</option><option>NS 2+</option><option>NS 3+</option><option>NS 4+</option></select>
+  </div>
+  <div class="field"><label>Cortical OD</label>
+    <select data-key="cortical_od"><option value="">None</option><option>Cortical 1+</option><option>Cortical 2+</option><option>Cortical 3+</option><option>Cortical 4+</option></select>
+  </div>
+  <div class="field"><label>PSC OD</label>
+    <select data-key="psc_od"><option value="">None</option><option>PSC 1+</option><option>PSC 2+</option><option>PSC 3+</option><option>PSC 4+</option></select>
+  </div>
+</div>
+<div class="row row-full"><div class="field"><label>Additional OD Notes</label><input type="text" data-key="cat_notes_od" placeholder="e.g. brunescent, posterior polar..."></div></div>
+<div class="section-label">Cataract Grading — Left Eye (OS)</div>
+<div class="row row-3">
+  <div class="field"><label>Nuclear Sclerosis OS</label>
+    <select data-key="ns_os"><option value="">None</option><option>NS 1+</option><option>NS 2+</option><option>NS 3+</option><option>NS 4+</option></select>
+  </div>
+  <div class="field"><label>Cortical OS</label>
+    <select data-key="cortical_os"><option value="">None</option><option>Cortical 1+</option><option>Cortical 2+</option><option>Cortical 3+</option><option>Cortical 4+</option></select>
+  </div>
+  <div class="field"><label>PSC OS</label>
+    <select data-key="psc_os"><option value="">None</option><option>PSC 1+</option><option>PSC 2+</option><option>PSC 3+</option><option>PSC 4+</option></select>
+  </div>
+</div>
+<div class="row row-full"><div class="field"><label>Additional OS Notes</label><input type="text" data-key="cat_notes_os" placeholder="e.g. brunescent, posterior polar..."></div></div>
+<div class="section-label">Referral Details</div>
+<div class="row row-full"><div class="field"><label>Functional Complaints / Reason for Referral</label><textarea data-key="reason" placeholder="e.g. Difficulty driving at night, glare, decreased BCVA affecting daily activities..."></textarea></div></div>
+<div class="row row-full"><div class="field"><label>Co-management</label>
+  <select data-key="coman"><option>Yes — we will co-manage post-op care</option><option>No — full care at surgical center</option></select>
+</div></div>`,
+    letter: (v, sigHTML) => {
+      const gradeOD = [v.ns_od, v.cortical_od, v.psc_od].filter(Boolean).join(', ') || 'Not significant';
+      const gradeOS = [v.ns_os, v.cortical_os, v.psc_os].filter(Boolean).join(', ') || 'Not significant';
+      return `
+${ltrHdr(v.loc)}
+<div class="ltr-date">${v.date}</div>
+<p>${v.to || 'Dear Colleague,'}</p>
+<div class="ltr-re"><strong>RE: Cataract Referral</strong> &nbsp;·&nbsp; ${v.patient||'___'} &nbsp;·&nbsp; DOB: ${v.dob||'___'}</div>
+<div class="ltr-body">
+<p>I am referring the above-named patient for cataract evaluation. The following findings were noted on examination:</p>
+<table class="ltr-table">
+<tr><th></th><th>Right Eye (OD)</th><th>Left Eye (OS)</th></tr>
+<tr><td><strong>BCVA</strong></td><td>${v.bcva_od||'—'}</td><td>${v.bcva_os||'—'}</td></tr>
+<tr><td><strong>BCVA with Pinhole</strong></td><td>${v.ph_od||'—'}</td><td>${v.ph_os||'—'}</td></tr>
+<tr><td><strong>Refractive Error</strong></td><td>${v.rx_od||'—'}</td><td>${v.rx_os||'—'}</td></tr>
+<tr><td><strong>Cataract Grading</strong></td><td>${gradeOD}${v.cat_notes_od?`<br><em>${v.cat_notes_od}</em>`:''}</td><td>${gradeOS}${v.cat_notes_os?`<br><em>${v.cat_notes_os}</em>`:''}</td></tr>
+</table>
+${v.reason?`<p><strong>Functional complaints:</strong> ${v.reason}</p>`:''}
+${v.coman?`<p><strong>Co-management:</strong> ${v.coman}</p>`:''}
+<p>Thank you for your evaluation. Please feel free to contact our office with any questions.</p>
+</div>
+<div class="ltr-close"><p>Sincerely,</p></div>
+${sigHTML}
+${FOOTER_HTML}`;
+    }
+  },
+  cornea: {
+    title: 'Referral to OMD — Cornea',
+    html: PATIENT_TOP + `
+<div class="section-label">Corneal Findings</div>
+<div class="row row-2">
+  <div class="field"><label>Diagnosis</label>
+    <select data-key="dx"><option value="">Select...</option>
+      <option>Keratoconus</option><option>Corneal dystrophy</option><option>Corneal edema</option>
+      <option>Corneal scar</option><option>Recurrent corneal erosion</option><option>Corneal ulcer</option>
+      <option>Dry eye — advanced</option><option>Other</option>
+    </select>
+  </div>
+  <div class="field"><label>Eye(s) Affected</label>
+    <select data-key="eye"><option>OD</option><option>OS</option><option>OU</option></select>
+  </div>
+</div>
+<div class="row row-2">
+  <div class="field"><label>Topography / Keratometry Notes</label><textarea data-key="topo" placeholder="K readings, topography findings..."></textarea></div>
+  <div class="field"><label>VA / Refraction</label><textarea data-key="va" placeholder="BCVA, manifest Rx, irregular astigmatism..."></textarea></div>
+</div>
+<div class="row row-full"><div class="field"><label>Reason for Referral / Clinical Notes</label><textarea data-key="reason" placeholder="Describe clinical picture and what you're looking for from the specialist..."></textarea></div></div>`,
+    letter: (v, sigHTML) => `
+${ltrHdr(v.loc)}
+<div class="ltr-date">${v.date}</div>
+<p>${v.to || 'Dear Colleague,'}</p>
+<div class="ltr-re"><strong>RE: Cornea Referral</strong> &nbsp;·&nbsp; ${v.patient||'___'} &nbsp;·&nbsp; DOB: ${v.dob||'___'}</div>
+<div class="ltr-body">
+<p>I am referring the above-named patient for corneal evaluation.</p>
+<table class="ltr-table">
+<tr><th colspan="2">Clinical Findings</th></tr>
+<tr><td><strong>Diagnosis</strong></td><td>${v.dx||'—'}</td></tr>
+<tr><td><strong>Eye(s)</strong></td><td>${v.eye||'—'}</td></tr>
+${v.topo?`<tr><td><strong>Topography / K</strong></td><td>${v.topo}</td></tr>`:''}
+${v.va?`<tr><td><strong>VA / Refraction</strong></td><td>${v.va}</td></tr>`:''}
+</table>
+${v.reason?`<p>${v.reason}</p>`:''}
+<p>I appreciate your expertise. Please contact our office with any questions.</p>
+</div>
+<div class="ltr-close"><p>Sincerely,</p></div>
+${sigHTML}
+${FOOTER_HTML}`
+  },
+  retina: {
+    title: 'Referral to OMD — Retina',
+    html: PATIENT_TOP + `
+<div class="section-label">Retinal Findings</div>
+<div class="row row-2">
+  <div class="field"><label>Chief Concern</label>
+    <select data-key="concern"><option value="">Select...</option>
+      <option>Retinal detachment — suspected</option><option>Retinal tear / lattice degeneration</option>
+      <option>Macular degeneration — wet</option><option>Macular degeneration — dry, advanced</option>
+      <option>Macular hole</option><option>Epiretinal membrane</option>
+      <option>Central serous retinopathy</option><option>Choroidal nevus — suspicious</option>
+      <option>Vascular occlusion</option><option>Other</option>
+    </select>
+  </div>
+  <div class="field"><label>Urgency</label>
+    <select data-key="urgency">
+      <option>Routine — within 2–4 weeks</option><option>Semi-urgent — within 1 week</option>
+      <option>Urgent — within 24–48 hours</option><option>Emergent — same day</option>
+    </select>
+  </div>
+</div>
+<div class="row row-2">
+  <div class="field"><label>OD Findings</label><textarea data-key="od" placeholder="Right eye findings..."></textarea></div>
+  <div class="field"><label>OS Findings</label><textarea data-key="os" placeholder="Left eye findings..."></textarea></div>
+</div>
+<div class="row row-full"><div class="field"><label>Symptoms / History</label><textarea data-key="sx" placeholder="Flashes, floaters, curtain, onset, duration..."></textarea></div></div>
+<div class="row row-full"><div class="field"><label>Additional Notes</label><textarea data-key="notes" placeholder="OCT findings, imaging, relevant history..."></textarea></div></div>`,
+    letter: (v, sigHTML) => `
+${ltrHdr(v.loc)}
+<div class="ltr-date">${v.date}</div>
+<p>${v.to || 'Dear Colleague,'}</p>
+<div class="ltr-re"><strong>RE: Retina Referral${v.urgency?` — ${v.urgency}`:''}</strong> &nbsp;·&nbsp; ${v.patient||'___'} &nbsp;·&nbsp; DOB: ${v.dob||'___'}</div>
+<div class="ltr-body">
+<p>I am referring the above-named patient for retinal evaluation${v.urgency&&(v.urgency.includes('Urgent')||v.urgency.includes('Emergent'))?' — this is a time-sensitive referral':''}.</p>
+<table class="ltr-table">
+<tr><th colspan="2">Clinical Findings</th></tr>
+<tr><td><strong>Chief Concern</strong></td><td>${v.concern||'—'}</td></tr>
+<tr><td><strong>Urgency</strong></td><td>${v.urgency||'—'}</td></tr>
+${v.sx?`<tr><td><strong>Symptoms</strong></td><td>${v.sx}</td></tr>`:''}
+${v.od?`<tr><td><strong>OD</strong></td><td>${v.od}</td></tr>`:''}
+${v.os?`<tr><td><strong>OS</strong></td><td>${v.os}</td></tr>`:''}
+${v.notes?`<tr><td><strong>Notes</strong></td><td>${v.notes}</td></tr>`:''}
+</table>
+<p>Thank you for your care of this patient. Please contact our office with any questions.</p>
+</div>
+<div class="ltr-close"><p>Sincerely,</p></div>
+${sigHTML}
+${FOOTER_HTML}`
+  },
+  general: {
+    title: 'Referral to OMD — General',
+    html: PATIENT_TOP + `
+<div class="section-label">Referral Details</div>
+<div class="row row-2">
+  <div class="field"><label>Reason for Referral</label><input type="text" data-key="reason" placeholder="Primary reason..."></div>
+  <div class="field"><label>Urgency</label>
+    <select data-key="urgency">
+      <option>Routine — within 2–4 weeks</option><option>Semi-urgent — within 1 week</option>
+      <option>Urgent — within 24–48 hours</option><option>Emergent — same day</option>
+    </select>
+  </div>
+</div>
+<div class="row row-2">
+  <div class="field"><label>OD Findings</label><textarea data-key="od" placeholder="Right eye findings..."></textarea></div>
+  <div class="field"><label>OS Findings</label><textarea data-key="os" placeholder="Left eye findings..."></textarea></div>
+</div>
+<div class="row row-full"><div class="field"><label>Clinical Notes / History</label><textarea data-key="notes" style="min-height:100px" placeholder="Relevant history, findings, and what you are requesting from the specialist..."></textarea></div></div>
+<div class="row row-full"><div class="field"><label>Current Medications</label><input type="text" data-key="meds" placeholder="Relevant ocular and systemic medications..."></div></div>`,
+    letter: (v, sigHTML) => `
+${ltrHdr(v.loc)}
+<div class="ltr-date">${v.date}</div>
+<p>${v.to || 'Dear Colleague,'}</p>
+<div class="ltr-re"><strong>RE: Ophthalmology Referral</strong> &nbsp;·&nbsp; ${v.patient||'___'} &nbsp;·&nbsp; DOB: ${v.dob||'___'}</div>
+<div class="ltr-body">
+<p>I am referring the above-named patient for ophthalmologic evaluation.</p>
+<table class="ltr-table">
+<tr><th colspan="2">Referral Details</th></tr>
+<tr><td><strong>Reason</strong></td><td>${v.reason||'—'}</td></tr>
+<tr><td><strong>Urgency</strong></td><td>${v.urgency||'—'}</td></tr>
+${v.od?`<tr><td><strong>OD</strong></td><td>${v.od}</td></tr>`:''}
+${v.os?`<tr><td><strong>OS</strong></td><td>${v.os}</td></tr>`:''}
+${v.meds?`<tr><td><strong>Medications</strong></td><td>${v.meds}</td></tr>`:''}
+</table>
+${v.notes?`<p>${v.notes}</p>`:''}
+<p>Thank you for your evaluation. Please do not hesitate to contact our office with any questions.</p>
+</div>
+<div class="ltr-close"><p>Sincerely,</p></div>
+${sigHTML}
+${FOOTER_HTML}`
+  },
+
+  md_general: {
+    title: 'Letter to MD — General Correspondence',
+    html: PATIENT_TOP + `
+<div class="section-label">Examination</div>
+<div class="row row-2">
+  <div class="field"><label>Exam Type</label>
+    <select data-key="exam_type">
+      <option>Comprehensive dilated eye examination</option>
+      <option>Optomap retinal imaging</option>
+      <option>Dilated examination and Optomap</option>
+      <option>Visual field testing</option>
+      <option>OCT imaging</option>
+      <option>Anterior segment examination</option>
+      <option>Other / see notes</option>
+    </select>
+  </div>
+  <div class="field"><label>Reason for Writing</label>
+    <select data-key="reason_type">
+      <option>Plaquenil / hydroxychloroquine monitoring</option>
+      <option>Tamoxifen toxicity monitoring</option>
+      <option>Neurological / neuro-ophthalmic findings</option>
+      <option>Pre-operative clearance</option>
+      <option>Medication side effect concern</option>
+      <option>General ocular health update</option>
+      <option>Other</option>
+    </select>
+  </div>
+</div>
+<div class="section-label">Findings</div>
+<div class="row row-2">
+  <div class="field"><label>Right Eye (OD)</label><textarea data-key="od" placeholder="e.g. Visual fields full, no macular changes on OCT, disc healthy..."></textarea></div>
+  <div class="field"><label>Left Eye (OS)</label><textarea data-key="os" placeholder="e.g. Visual fields full, no macular changes on OCT, disc healthy..."></textarea></div>
+</div>
+<div class="row row-full"><div class="field"><label>Additional Findings / Test Results</label><textarea data-key="findings" placeholder="e.g. OCT macula WNL OU, Humphrey VF 24-2 full OU, color vision intact..."></textarea></div></div>
+<div class="section-label">Recommendations</div>
+<div class="row row-full"><div class="field"><label>Recommendations / What You Are Requesting</label><textarea data-key="rec" placeholder="e.g. No ocular toxicity identified at this time. Safe to continue current dose. Recommend annual monitoring. / Please consider adjusting dose given findings noted above..."></textarea></div></div>
+<div class="row row-full"><div class="field"><label>Additional Notes</label><textarea data-key="notes" placeholder="Optional..."></textarea></div></div>`,
+    letter: (v, sigHTML) => `
+${ltrHdr(v.loc)}
+<div class="ltr-date">${v.date}</div>
+<p>${v.to || 'Dear Physician,'}</p>
+<div class="ltr-re"><strong>RE: ${v.reason_type||'Ocular Findings'}</strong> &nbsp;·&nbsp; ${v.patient||'___'} &nbsp;·&nbsp; DOB: ${v.dob||'___'}</div>
+<div class="ltr-body">
+<p>I am writing regarding the above-named patient, who was seen in our office for ${v.exam_type||'a comprehensive eye examination'}.</p>
+${(v.od||v.os)?`
+<p><strong>Examination Findings:</strong></p>
+<table class="ltr-table">
+<tr><th>Eye</th><th>Findings</th></tr>
+${v.od?`<tr><td><strong>OD</strong></td><td>${v.od}</td></tr>`:''}
+${v.os?`<tr><td><strong>OS</strong></td><td>${v.os}</td></tr>`:''}
+</table>`:''}
+${v.findings?`<p><strong>Additional Results:</strong> ${v.findings}</p>`:''}
+${v.rec?`<p><strong>Recommendations:</strong> ${v.rec}</p>`:''}
+${v.notes?`<p>${v.notes}</p>`:''}
+<p>Please do not hesitate to contact our office if you have any questions or require additional information.</p>
+</div>
+<div class="ltr-close"><p>Sincerely,</p></div>
+${sigHTML}
+${FOOTER_HTML}`
+  },
+};
+
+function ltrHdr(locKey) {
+  const loc = LOCS[locKey] || LOCS.sc;
+  return `<div class="ltr-hdr">
+    <div class="ltr-name">THE SPARK <span>OPTOMETRY</span></div>
+    <div class="ltr-loc">${loc.addr} &nbsp;·&nbsp; ${loc.phone} &nbsp;·&nbsp; Fax: ${loc.fax}</div>
+  </div>`;
+}
+
+function openForm(type) {
+  currentFormType = type;
+  const f = FORMS_DEF[type];
+  document.getElementById('form-title').textContent = f.title;
+  document.getElementById('form-body').innerHTML = f.html;
+  // Reset signature option
+  sigMode = 'type';
+  document.querySelectorAll('input[name="sig-opt"]').forEach(r => r.checked = r.value==='type');
+  document.getElementById('sig-saved-sub').classList.remove('show');
+  document.getElementById('sig-draw-sub').classList.remove('show');
+  // Populate doctor select
+  document.getElementById('sig-form-who').innerHTML = '<option value="">Select...</option>' + doctors.map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
+  document.getElementById('form-overlay').classList.add('open');
+  initDobFields();
+}
+
+function closeForm() { document.getElementById('form-overlay').classList.remove('open'); }
+
+function clearFormFields() {
+  document.querySelectorAll('#form-body input:not([type=radio]):not([type=checkbox]), #form-body textarea').forEach(el => {
+    if (!['20/', TODAY].includes(el.getAttribute('value'))) el.value = '';
+  });
+}
+
+function getFormValues() {
+  const v = {};
+  document.querySelectorAll('#form-body [data-key]').forEach(el => {
+    if (el.type === 'checkbox') {
+      v[el.dataset.key] = el.checked ? 'true' : 'false';
+    } else {
+      v[el.dataset.key] = el.value;
+    }
+  });
+  if (v.dob) v.dob = formatDobForLetter(v.dob);
+  return v;
+}
+
+async function generateLetter() {
+  const v = getFormValues();
+  const dr = v.dr || '___';
+  const loc = LOCS[v.loc] || LOCS.sc;
+  const sigHTML = await buildSigHTML(dr, loc.name);
+  if (sigHTML === null) return; // error shown inline
+
+  const f = FORMS_DEF[currentFormType];
+  const html = f.letter(v, sigHTML);
+  document.getElementById('letter-body').innerHTML = html;
+  document.getElementById('letter-overlay').classList.add('show');
+  closeForm();
+}
+
+async function buildSigHTML(dr, locName) {
+  const errEl = document.getElementById('sig-form-err');
+  if (errEl) errEl.style.display = 'none';
+
+  if (sigMode === 'type') {
+    return `<div class="ltr-sig">Dr. ${dr}<br><span style="font-size:9pt;color:#555">${locName}</span></div>`;
+  }
+
+  if (sigMode === 'draw') {
+    const canvas = document.getElementById('form-sig-canvas');
+    const px = canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
+    const hasDrawing = px.some((v,i) => i%4===3 && v>0);
+    const img = hasDrawing ? `<img src="${canvas.toDataURL()}" class="ltr-sig-img">` : '';
+    return `<div class="ltr-sig">${img}Dr. ${dr}<br><span style="font-size:9pt;color:#555">${locName}</span></div>`;
+  }
+
+  if (sigMode === 'saved') {
+    const docId = document.getElementById('sig-form-who').value;
+    const pw = document.getElementById('sig-form-pw').value;
+    if (!docId) { if(errEl){errEl.textContent='Please select your name.';errEl.style.display='block';} return null; }
+    if (!pw) { if(errEl){errEl.textContent='Please enter your password.';errEl.style.display='block';} return null; }
+    // Fetch fresh from Firestore to get latest sig
+    let doc = doctors.find(d => d.id===docId);
+    try {
+      const fresh = await FS.getAll('doctors');
+      const found = fresh.find(d => d.id===docId);
+      if (found) { doc = found; Object.assign(doctors.find(d=>d.id===docId)||{}, found); }
+    } catch(e) {}
+    if (!doc?.hasSig) { if(errEl){errEl.textContent='No signature on file. Set up your signature in the My Signature tab.';errEl.style.display='block';} return null; }
+    if (await hash(pw) !== doc.pwHash) { if(errEl){errEl.textContent='Incorrect password.';errEl.style.display='block';} return null; }
+    return `<div class="ltr-sig"><img src="${doc.sig}" style="max-height:52px;max-width:200px;object-fit:contain;display:block;margin-bottom:.2rem">Dr. ${dr}<br><span style="font-size:9pt;color:#555">${locName}</span></div>`;
+  }
+
+  return `<div class="ltr-sig">Dr. ${dr}<br><span style="font-size:9pt;color:#555">${locName}</span></div>`;
+}
+
+// ════════════════════════════════════════════════════════════
+// DOB AUTO-FORMAT
+// ════════════════════════════════════════════════════════════
+function initDobFields() {
+  document.querySelectorAll('.dob-input').forEach(input => {
+    input.addEventListener('input', function(e) {
+      // Strip everything except digits
+      let digits = this.value.replace(/\D/g, '').slice(0, 8);
+      let formatted = '';
+      if (digits.length > 0) formatted = digits.slice(0, 2);
+      if (digits.length > 2) formatted += ' / ' + digits.slice(2, 4);
+      if (digits.length > 4) formatted += ' / ' + digits.slice(4, 8);
+      this.value = formatted;
+    });
+    input.addEventListener('keydown', function(e) {
+      // Allow backspace to work naturally
+      if (e.key === 'Backspace') {
+        let digits = this.value.replace(/\D/g, '');
+        digits = digits.slice(0, -1);
+        let formatted = '';
+        if (digits.length > 0) formatted = digits.slice(0, 2);
+        if (digits.length > 2) formatted += ' / ' + digits.slice(2, 4);
+        if (digits.length > 4) formatted += ' / ' + digits.slice(4, 8);
+        this.value = formatted;
+        e.preventDefault();
+      }
+    });
+  });
+}
+
+function formatDobForLetter(raw) {
+  // raw could be "09 / 08 / 1984" or "09/08/1984" — normalize to MM/DD/YYYY
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length === 8) return `${digits.slice(0,2)}/${digits.slice(2,4)}/${digits.slice(4,8)}`;
+  return raw; // return as-is if not 8 digits
+}
+
+// ════════════════════════════════════════════════════════════
+// UTILITIES
+// ════════════════════════════════════════════════════════════
+async function hash(pw) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// ════════════════════════════════════════════════════════════
+// START
+// ════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
